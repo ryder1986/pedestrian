@@ -3,7 +3,7 @@
 Config::Config(QObject *parent) : QObject(parent)
 {
     config_filename.clear();
-    config_filename.append("/root/repo-211/zenith/pedestrian/pedestrian/config.json");
+    config_filename.append("/root/repo-github/pedestrian/pedestrian/pedestrian/config.json");
     load_config();
     save_config();
 }

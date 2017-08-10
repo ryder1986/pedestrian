@@ -68,13 +68,9 @@ public:
            for(int i=0;i<data.camera_amount;i++)
            {
                QJsonObject o;
-               o["ip"]="192.168.1.1";
-               o["port"]=1234;
-               QJsonValue v;
-               v.fromVariant(o);
-
-               cams.append(v);
-
+               o["ip"]=data.camera[i].ip;
+               o["port"]=data.camera[i].port;
+               cams.append(o);
            }
           // QJsonObject t;
 

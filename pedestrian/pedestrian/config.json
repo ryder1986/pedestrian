@@ -1,1 +1,13 @@
-/root/mounts/e/zenith/body-detect/config.json
+{
+    "camera": [
+        {
+            "ip": "192.168.1.89",
+            "port": 554
+        },
+        {
+            "ip": "192.168.1.81",
+            "port": 554
+        }
+    ],
+    "camera_total_number": 2
+}
