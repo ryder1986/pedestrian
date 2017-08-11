@@ -106,9 +106,9 @@ public:
                     }
 
                     //rectangle(frame,rect,Scalar(0,255,0),2);
-                    imshow("result", frame);
+                    //    imshow("result", frame);
                     //outputVideo << frame;
-                    waitKey(1);
+                    //   waitKey(1);
                     objs.clear();
                 }
 
@@ -136,8 +136,8 @@ public:
 
     VideoSrc()
     {
-   //     p_cap= cvCreateFileCapture("rtsp://192.168.1.81:554");  //读取视频
-        p_cap= cvCreateFileCapture("/root/repo-github/pedestrian-demo/test.mp4");  //读取视频
+        //     p_cap= cvCreateFileCapture("rtsp://192.168.1.81:554");  //读取视频
+        p_cap= cvCreateFileCapture("/root/repo-github/pedestrian/test.mp4");  //读取视频
     }
     ~VideoSrc()
     {
@@ -160,7 +160,7 @@ public:
 
         timer=new QTimer();
         connect(timer,SIGNAL(timeout()),this,SLOT(work()));
-        timer->start(1000);
+        timer->start(100);
     }
     ~Camera(){
         delete timer;
@@ -171,7 +171,7 @@ signals:
 public slots:
     void work()
     {
-        prt(info,"working");
+        //    prt(info,"working");
         src.set(handler);
         handler.work();
     }
