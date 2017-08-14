@@ -60,6 +60,16 @@ private:
     QByteArray datagram;
     QUdpSocket *udpSocket;
 };
+class tcpClient{
+public:
+    tcpClient(QTcpSocket *client_skt):skt(client_skt){
+
+    }
+
+private:
+      QTcpSocket *skt;
+};
+
 class Server : public QObject
 {
     Q_OBJECT
@@ -75,7 +85,8 @@ public:
         {
               qDebug()<<"listen fail";
         }
-        connect(server, &QTcpServer::newConnection, this, &Server::reply);
+     //   connect(server, &QTcpServer::newConnection, this, &Server::reply);
+        connect(server, &QTcpServer::newConnection, this, &Server::new_client);
 
     }
     ~Server(){
@@ -103,9 +114,24 @@ public slots:
 //                skt, &QObject::deleteLater);
         connect(skt, SIGNAL(disconnected()),
                 skt, SLOT(deleteLater()));
-       qDebug()<<"peer addr "<<skt->peerAddress()<<skt->peerPort();
+        qDebug()<<"peer addr "<<skt->peerAddress()<<skt->peerPort();
         skt->write(block);
         skt->disconnectFromHost();
+    }
+    void new_client()
+    {
+        qDebug()<<"send one";
+        QByteArray block;
+        QString str("1234567890");
+        block.append(str);
+        QTcpSocket *skt = server->nextPendingConnection();
+//        connect(skt, &QAbstractSocket::disconnected,
+//                skt, &QObject::deleteLater);
+        connect(skt, SIGNAL(disconnected()),
+                skt, SLOT(deleteLater()));
+        qDebug()<<"peer addr "<<skt->peerAddress()<<skt->peerPort();
+    //    skt->write(block);
+    //    skt->disconnectFromHost();
     }
     void handle_msg()
     {
