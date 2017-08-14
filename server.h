@@ -7,13 +7,17 @@
 #include <QTimer>
 #include <QtNetwork>
 #include <QNetworkInterface>
+#include "common.h"
 class Discover : public QObject{
     Q_OBJECT
-    public:
+public:
     Discover(QObject *p=NULL){
         timer=new QTimer();
-        connect(timer,SIGNAL(timeout()),this,SLOT(send_buffer()));
+     //     connect(timer,SIGNAL(timeout()),this,SLOT(send_buffer()));
+      connect(timer,SIGNAL(timeout()),this,SLOT(check_client()));
+
         udpSocket = new QUdpSocket(this);
+        udpSocket->bind(12346,QUdpSocket::ShareAddress);
         timer->start(1000);
 
     }
@@ -24,11 +28,31 @@ class Discover : public QObject{
 
     }
 
- public  slots:
+public  slots:
+    void check_client()
+    {
+        QByteArray bb;
+
+    //    while(udpSocket->hasPendingDatagrams())
+            if(udpSocket->hasPendingDatagrams())
+
+        {
+
+            bb.resize((udpSocket->pendingDatagramSize()));
+            udpSocket->readDatagram(bb.data(),bb.size());
+            qDebug()<<"get"<<bb.data();
+             send_buffer();
+             udpSocket->flush();
+        }else{
+                qDebug()<<"get nothing ";
+            }
+        //    send_buffer();
+    }
+
     void send_buffer()
     {
-      //  qDebug()<<"time out ";
-    //   datagram = "ip 192.168.1.216 ";
+        //  qDebug()<<"time out ";
+        //   datagram = "ip 192.168.1.216 ";
         qDebug()<<"sending buf";
         datagram.clear();
         QList <QNetworkInterface>list_interface=QNetworkInterface::allInterfaces();
@@ -38,11 +62,11 @@ class Discover : public QObject{
                 foreach (QNetworkAddressEntry e, list_entry) {
                     if(e.ip().protocol()==QAbstractSocket::IPv4Protocol)
                     {
-                    //    qDebug()<<e.ip()<<e.netmask()<<e.broadcast();
+                        //    qDebug()<<e.ip()<<e.netmask()<<e.broadcast();
                         datagram.append(QString(e.ip().toString())).append(QString(",")).\
                                 append(QString(e.netmask().toString())).append(QString(",")).append(QString(e.broadcast().toString()));
 
-                //    qDebug()<<datagram;
+                        //    qDebug()<<datagram;
                     }
 
                 }
@@ -51,7 +75,7 @@ class Discover : public QObject{
 
 
         udpSocket->writeDatagram(datagram.data(), datagram.size(),
-                                 QHostAddress::Broadcast, 45454);
+                                 QHostAddress::Broadcast, 12347);
     }
 
 private:
@@ -60,14 +84,59 @@ private:
     QByteArray datagram;
     QUdpSocket *udpSocket;
 };
-class tcpClient{
+
+class tcpClient:QObject{
+    Q_OBJECT
 public:
     tcpClient(QTcpSocket *client_skt):skt(client_skt){
+//        connect(skt, SIGNAL(error(QAbstractSocket::SocketError)),
+//                //! [3]
+//                this, SLOT(displayError(QAbstractSocket::SocketError)));
+        qDebug()<<"re ply";
+       welcom_reply();
+       connect(skt,SIGNAL(readyRead()),this,SLOT(simple_reply()));
+    }
+public slots:
+    void simple_reply()
+    {
+        QByteArray client_buf=skt->readAll();
+
+        QByteArray block;
+        block.append(client_buf[0]+1);
+//        QString str("1234567890");
+//        block.append(str);
+        skt->write(block);
+        //  skt->disconnectFromHost();
+    }
+    void welcom_reply(){
+
+        QByteArray block;
+        QString str("welcom client ");
+        block.append(str);
+        skt->write(block);
+
+    }
+
+    void displayError(QAbstractSocket::SocketError socketError)
+    {
+        switch (socketError) {
+        case QAbstractSocket::RemoteHostClosedError:
+            break;
+        case QAbstractSocket::HostNotFoundError:
+                   qDebug()<<"error1"<<endl;
+            break;
+        case QAbstractSocket::ConnectionRefusedError:
+               qDebug()<<"error2"<<endl;
+            break;
+        default:break;
+
+        }
+
 
     }
 
 private:
-      QTcpSocket *skt;
+    QTcpSocket *skt;
 };
 
 class Server : public QObject
@@ -83,9 +152,9 @@ public:
             qDebug()<<"listen"<<server->serverPort();
         }else
         {
-              qDebug()<<"listen fail";
+            qDebug()<<"listen fail";
         }
-     //   connect(server, &QTcpServer::newConnection, this, &Server::reply);
+        //   connect(server, &QTcpServer::newConnection, this, &Server::reply);
         connect(server, &QTcpServer::newConnection, this, &Server::new_client);
 
     }
@@ -99,24 +168,24 @@ public slots:
     void reply()
     {
         qDebug()<<"send one";
-        QByteArray block;
-//        QDataStream out(&block, QIODevice::WriteOnly);
-//        out.setVersion(QDataStream::Qt_4_0);
-//        out<<(quint16)0;
-//        out << QString("123456789");
-//        out.device()->seek(0);
-//        out<<(quint16)(block.size()-sizeof(quint16));
+        //        QByteArray block;
+        ////        QDataStream out(&block, QIODevice::WriteOnly);
+        ////        out.setVersion(QDataStream::Qt_4_0);
+        ////        out<<(quint16)0;
+        ////        out << QString("123456789");
+        ////        out.device()->seek(0);
+        ////        out<<(quint16)(block.size()-sizeof(quint16));
 
-        QString str("1234567890");
-        block.append(str);
+        //        QString str("1234567890");
+        //        block.append(str);
         QTcpSocket *skt = server->nextPendingConnection();
-//        connect(skt, &QAbstractSocket::disconnected,
-//                skt, &QObject::deleteLater);
+        //        connect(skt, &QAbstractSocket::disconnected,
+        //                skt, &QObject::deleteLater);
         connect(skt, SIGNAL(disconnected()),
                 skt, SLOT(deleteLater()));
         qDebug()<<"peer addr "<<skt->peerAddress()<<skt->peerPort();
-        skt->write(block);
-        skt->disconnectFromHost();
+        //        skt->write(block);
+        //        skt->disconnectFromHost();
     }
     void new_client()
     {
@@ -125,13 +194,14 @@ public slots:
         QString str("1234567890");
         block.append(str);
         QTcpSocket *skt = server->nextPendingConnection();
-//        connect(skt, &QAbstractSocket::disconnected,
-//                skt, &QObject::deleteLater);
+        //        connect(skt, &QAbstractSocket::disconnected,
+        //                skt, &QObject::deleteLater);
         connect(skt, SIGNAL(disconnected()),
                 skt, SLOT(deleteLater()));
         qDebug()<<"peer addr "<<skt->peerAddress()<<skt->peerPort();
-    //    skt->write(block);
-    //    skt->disconnectFromHost();
+        new tcpClient(skt);
+        //    skt->write(block);
+        //    skt->disconnectFromHost();
     }
     void handle_msg()
     {
@@ -145,8 +215,8 @@ public slots:
         connect(skt,SIGNAL(readyRead()),this,SLOT(handle_msg));
     }
 private:
-      Discover *dis;
-      QTcpServer *server;
+    Discover *dis;
+    QTcpServer *server;
 };
 
 #endif // SERVER_H
