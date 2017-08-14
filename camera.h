@@ -198,8 +198,6 @@ public:
     }
     ~CameraManager(){
         for(int i=0;i<cfg.data.camera_amount;i++){
-
-
             delete cams[i];
         }
     }
