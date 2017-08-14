@@ -16,8 +16,9 @@ HEADERS += \
     common.h \
     config.h \
     camera.h \
-    server.h
+    server.h \
+    protocol.h
 
 
-INCLUDEPATH+=opencv249/include
+INCLUDEPATH+=/usr/include
 LIBS +=   -lopencv_core  -lopencv_highgui  -lopencv_objdetect -lopencv_imgproc -lopencv_ml -lopencv_video

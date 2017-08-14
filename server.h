@@ -2,7 +2,7 @@
 #define SERVER_H
 
 #include <QObject>
-
+#include"protocol.h"
 #include <QObject>
 #include <QTimer>
 #include <QtNetwork>
@@ -13,9 +13,8 @@ class Discover : public QObject{
 public:
     Discover(QObject *p=NULL){
         timer=new QTimer();
-     //     connect(timer,SIGNAL(timeout()),this,SLOT(send_buffer()));
-      connect(timer,SIGNAL(timeout()),this,SLOT(check_client()));
-
+        //     connect(timer,SIGNAL(timeout()),this,SLOT(send_buffer()));
+        connect(timer,SIGNAL(timeout()),this,SLOT(check_client()));
         udpSocket = new QUdpSocket(this);
         udpSocket->bind(12346,QUdpSocket::ShareAddress);
         timer->start(1000);
@@ -31,29 +30,26 @@ public:
 public  slots:
     void check_client()
     {
-        QByteArray bb;
-
-    //    while(udpSocket->hasPendingDatagrams())
-            if(udpSocket->hasPendingDatagrams())
-
+        QByteArray client_msg;
+        //    while(udpSocket->hasPendingDatagrams())
+        if(udpSocket->hasPendingDatagrams())
         {
-
-            bb.resize((udpSocket->pendingDatagramSize()));
-            udpSocket->readDatagram(bb.data(),bb.size());
-            qDebug()<<"get"<<bb.data();
-             send_buffer();
-             udpSocket->flush();
+            client_msg.resize((udpSocket->pendingDatagramSize()));
+            udpSocket->readDatagram(client_msg.data(),client_msg.size());
+            qDebug()<<"get"<<client_msg.data()<<"from client";
+            send_buffer_to_client();
+         //   udpSocket->flush();
         }else{
-                qDebug()<<"get nothing ";
-            }
-        //    send_buffer();
+            qDebug()<<"get nothing from client ";
+        }
     }
 
-    void send_buffer()
+    void send_buffer_to_client()
     {
         //  qDebug()<<"time out ";
         //   datagram = "ip 192.168.1.216 ";
         qDebug()<<"sending buf";
+        QByteArray datagram;
         datagram.clear();
         QList <QNetworkInterface>list_interface=QNetworkInterface::allInterfaces();
         foreach (QNetworkInterface i, list_interface) {
@@ -72,16 +68,12 @@ public  slots:
                 }
             }
         }
-
-
         udpSocket->writeDatagram(datagram.data(), datagram.size(),
                                  QHostAddress::Broadcast, 12347);
     }
 
 private:
     QTimer *timer;
-    int     messageNo;
-    QByteArray datagram;
     QUdpSocket *udpSocket;
 };
 
@@ -89,12 +81,13 @@ class tcpClient:QObject{
     Q_OBJECT
 public:
     tcpClient(QTcpSocket *client_skt):skt(client_skt){
-//        connect(skt, SIGNAL(error(QAbstractSocket::SocketError)),
-//                //! [3]
-//                this, SLOT(displayError(QAbstractSocket::SocketError)));
-        qDebug()<<"re ply";
-       welcom_reply();
-       connect(skt,SIGNAL(readyRead()),this,SLOT(simple_reply()));
+        //        connect(skt, SIGNAL(error(QAbstractSocket::SocketError)),
+        //                //! [3]
+        //                this, SLOT(displayError(QAbstractSocket::SocketError)));
+ //       welcom_reply();
+           qDebug()<<"conntected";
+        connect(skt,SIGNAL(readyRead()),this,SLOT(real_reply()));
+        connect(skt,SIGNAL(disconnected()),this,SLOT(deleteLater()));
     }
 public slots:
     void simple_reply()
@@ -103,8 +96,8 @@ public slots:
 
         QByteArray block;
         block.append(client_buf[0]+1);
-//        QString str("1234567890");
-//        block.append(str);
+        //        QString str("1234567890");
+        //        block.append(str);
         skt->write(block);
         //  skt->disconnectFromHost();
     }
@@ -116,6 +109,19 @@ public slots:
         skt->write(block);
 
     }
+    void real_reply(){
+          qDebug()<<"replying";
+          QByteArray client_buf=skt->readAll();
+          int cmd=client_buf[0];
+          switch (cmd) {
+          case ADD_CAMERA:
+
+              break;
+          default:
+              break;
+          }
+
+    }
 
     void displayError(QAbstractSocket::SocketError socketError)
     {
@@ -123,10 +129,10 @@ public slots:
         case QAbstractSocket::RemoteHostClosedError:
             break;
         case QAbstractSocket::HostNotFoundError:
-                   qDebug()<<"error1"<<endl;
+            qDebug()<<"error1"<<endl;
             break;
         case QAbstractSocket::ConnectionRefusedError:
-               qDebug()<<"error2"<<endl;
+            qDebug()<<"error2"<<endl;
             break;
         default:break;
 
@@ -155,7 +161,7 @@ public:
             qDebug()<<"listen fail";
         }
         //   connect(server, &QTcpServer::newConnection, this, &Server::reply);
-        connect(server, &QTcpServer::newConnection, this, &Server::new_client);
+        connect(server, &QTcpServer::newConnection, this, &Server::handle_incomimg_client);
 
     }
     ~Server(){
@@ -165,31 +171,30 @@ public:
 signals:
 
 public slots:
-    void reply()
-    {
-        qDebug()<<"send one";
-        //        QByteArray block;
-        ////        QDataStream out(&block, QIODevice::WriteOnly);
-        ////        out.setVersion(QDataStream::Qt_4_0);
-        ////        out<<(quint16)0;
-        ////        out << QString("123456789");
-        ////        out.device()->seek(0);
-        ////        out<<(quint16)(block.size()-sizeof(quint16));
+//    void reply()
+//    {
+//        qDebug()<<"send one";
+//        //        QByteArray block;
+//        ////        QDataStream out(&block, QIODevice::WriteOnly);
+//        ////        out.setVersion(QDataStream::Qt_4_0);
+//        ////        out<<(quint16)0;
+//        ////        out << QString("123456789");
+//        ////        out.device()->seek(0);
+//        ////        out<<(quint16)(block.size()-sizeof(quint16));
 
-        //        QString str("1234567890");
-        //        block.append(str);
-        QTcpSocket *skt = server->nextPendingConnection();
-        //        connect(skt, &QAbstractSocket::disconnected,
-        //                skt, &QObject::deleteLater);
-        connect(skt, SIGNAL(disconnected()),
-                skt, SLOT(deleteLater()));
-        qDebug()<<"peer addr "<<skt->peerAddress()<<skt->peerPort();
-        //        skt->write(block);
-        //        skt->disconnectFromHost();
-    }
-    void new_client()
+//        //        QString str("1234567890");
+//        //        block.append(str);
+//        QTcpSocket *skt = server->nextPendingConnection();
+//        //        connect(skt, &QAbstractSocket::disconnected,
+//        //                skt, &QObject::deleteLater);
+//        connect(skt, SIGNAL(disconnected()),
+//                skt, SLOT(deleteLater()));
+//        qDebug()<<"peer addr "<<skt->peerAddress()<<skt->peerPort();
+//        //        skt->write(block);
+//        //        skt->disconnectFromHost();
+//    }
+    void handle_incomimg_client()
     {
-        qDebug()<<"send one";
         QByteArray block;
         QString str("1234567890");
         block.append(str);
@@ -198,7 +203,7 @@ public slots:
         //                skt, &QObject::deleteLater);
         connect(skt, SIGNAL(disconnected()),
                 skt, SLOT(deleteLater()));
-        qDebug()<<"peer addr "<<skt->peerAddress()<<skt->peerPort();
+        qDebug()<<"client addr incoming "<<skt->peerAddress()<<skt->peerPort();
         new tcpClient(skt);
         //    skt->write(block);
         //    skt->disconnectFromHost();

@@ -12,6 +12,8 @@
 #include <opencv2/video/video.hpp>
 #include <opencv2/ml/ml.hpp>
 #include <opencv2/objdetect/objdetect.hpp>
+
+
 using namespace cv;
 using namespace std;
 class VideoHandler{
@@ -182,5 +184,44 @@ private:
     VideoSrc src;
     VideoHandler handler;
 };
+
+#include"camera.h"
+class CameraManager:public QObject{
+public:
+    CameraManager(){
+
+        for(int i=0;i<cfg.data.camera_amount;i++){
+            Camera *c=new Camera(cfg.data.camera[i]);
+            //   Camera c(cfg.data.camera[i]);
+            cams.append(c);
+        }
+    }
+    ~CameraManager(){
+        for(int i=0;i<cfg.data.camera_amount;i++){
+
+
+            delete cams[i];
+        }
+    }
+
+    void add_camera()
+    {
+        //         Camera *c=new Camera(cfg.data.camera[i]);
+    }
+    void del_camera()
+    {
+
+    }
+    void change_camera()
+    {
+
+    }
+
+
+private:
+    QList <Camera *> cams;
+    Config cfg;
+};
+
 
 #endif // CAMERA_H
