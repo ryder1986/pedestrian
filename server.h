@@ -38,7 +38,7 @@ public  slots:
             udpSocket->readDatagram(client_msg.data(),client_msg.size());
             qDebug()<<"get"<<client_msg.data()<<"from client";
             send_buffer_to_client();
-         //   udpSocket->flush();
+            //   udpSocket->flush();
         }else{
             qDebug()<<"get nothing from client ";
         }
@@ -84,8 +84,8 @@ public:
         //        connect(skt, SIGNAL(error(QAbstractSocket::SocketError)),
         //                //! [3]
         //                this, SLOT(displayError(QAbstractSocket::SocketError)));
- //       welcom_reply();
-           qDebug()<<"conntected";
+        //       welcom_reply();
+        qDebug()<<"conntected";
         connect(skt,SIGNAL(readyRead()),this,SLOT(real_reply()));
         connect(skt,SIGNAL(disconnected()),this,SLOT(deleteLater()));
     }
@@ -110,16 +110,19 @@ public slots:
 
     }
     void real_reply(){
-          qDebug()<<"replying";
-          QByteArray client_buf=skt->readAll();
-          int cmd=client_buf[0];
-          switch (cmd) {
-          case ADD_CAMERA:
-
-              break;
-          default:
-              break;
-          }
+        qDebug()<<"replying";
+        QByteArray client_buf=skt->readAll();
+        int cmd=Protocol::get_operation(client_buf.data());
+        switch (cmd) {
+        case ADD_CAMERA:
+            prt(info,"protocol :add  cam");
+            break;
+        case GET_CONFIG:
+            prt(info,"protocol :get config");
+            break;
+        default:
+            break;
+        }
 
     }
 
@@ -171,28 +174,28 @@ public:
 signals:
 
 public slots:
-//    void reply()
-//    {
-//        qDebug()<<"send one";
-//        //        QByteArray block;
-//        ////        QDataStream out(&block, QIODevice::WriteOnly);
-//        ////        out.setVersion(QDataStream::Qt_4_0);
-//        ////        out<<(quint16)0;
-//        ////        out << QString("123456789");
-//        ////        out.device()->seek(0);
-//        ////        out<<(quint16)(block.size()-sizeof(quint16));
+    //    void reply()
+    //    {
+    //        qDebug()<<"send one";
+    //        //        QByteArray block;
+    //        ////        QDataStream out(&block, QIODevice::WriteOnly);
+    //        ////        out.setVersion(QDataStream::Qt_4_0);
+    //        ////        out<<(quint16)0;
+    //        ////        out << QString("123456789");
+    //        ////        out.device()->seek(0);
+    //        ////        out<<(quint16)(block.size()-sizeof(quint16));
 
-//        //        QString str("1234567890");
-//        //        block.append(str);
-//        QTcpSocket *skt = server->nextPendingConnection();
-//        //        connect(skt, &QAbstractSocket::disconnected,
-//        //                skt, &QObject::deleteLater);
-//        connect(skt, SIGNAL(disconnected()),
-//                skt, SLOT(deleteLater()));
-//        qDebug()<<"peer addr "<<skt->peerAddress()<<skt->peerPort();
-//        //        skt->write(block);
-//        //        skt->disconnectFromHost();
-//    }
+    //        //        QString str("1234567890");
+    //        //        block.append(str);
+    //        QTcpSocket *skt = server->nextPendingConnection();
+    //        //        connect(skt, &QAbstractSocket::disconnected,
+    //        //                skt, &QObject::deleteLater);
+    //        connect(skt, SIGNAL(disconnected()),
+    //                skt, SLOT(deleteLater()));
+    //        qDebug()<<"peer addr "<<skt->peerAddress()<<skt->peerPort();
+    //        //        skt->write(block);
+    //        //        skt->disconnectFromHost();
+    //    }
     void handle_incomimg_client()
     {
         QByteArray block;
