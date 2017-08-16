@@ -13,8 +13,9 @@ int main(int argc, char *argv[])
 //         Camera *c=new Camera(cfg.data.camera[i]);
 //    }
 
-    CameraManager *c=new CameraManager();
+  //  CameraManager *c=new CameraManager();
     Server *s=new Server();
+
     return a.exec();
 }
 

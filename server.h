@@ -8,6 +8,7 @@
 #include <QtNetwork>
 #include <QNetworkInterface>
 #include "common.h"
+#include "camera.h"
 class Discover : public QObject{
     Q_OBJECT
 public:
@@ -77,10 +78,10 @@ private:
     QUdpSocket *udpSocket;
 };
 
-class tcpClient:QObject{
+class tcpClient:public QObject{
     Q_OBJECT
 public:
-    tcpClient(QTcpSocket *client_skt):skt(client_skt){
+    tcpClient(QTcpSocket *client_skt,CameraManager *p):skt(client_skt),p_manager(p){
         //        connect(skt, SIGNAL(error(QAbstractSocket::SocketError)),
         //                //! [3]
         //                this, SLOT(displayError(QAbstractSocket::SocketError)));
@@ -109,16 +110,42 @@ public slots:
         skt->write(block);
 
     }
+
     void real_reply(){
-        qDebug()<<"replying";
+       // CameraManager *pa=(CameraManager *)pt;
+      //   skt->waitForReadyRead();
+
+        int tmp=3;//TODO : should be 0
         QByteArray client_buf=skt->readAll();
+        int ret=0;
         int cmd=Protocol::get_operation(client_buf.data());
+        memset(buf,0,BUF_MAX_LEN);
         switch (cmd) {
         case ADD_CAMERA:
             prt(info,"protocol :add  cam");
             break;
         case GET_CONFIG:
-            prt(info,"protocol :get config");
+           // emit get_server_config(buf);
+           //  CameraManager *pa=(CameraManager *)pt;
+
+#if 1
+          ret= p_manager->get_config(tmp+buf);
+      //      prt(info,"protocol :get config");
+       //     Protocol::encode_configuration_reply(tmp+buf,ret,RET_SUCCESS);
+//            buf[7]=3;
+//            buf[6]=2;
+       //     client_buf.setRawData(buf,ret+HEAD_LENGTH);
+
+
+            skt->write(buf,ret+tmp);
+
+
+#else
+           ret= p_manager->get_config(buf);
+            skt->write(buf,ret);
+#endif
+
+
             break;
         default:
             break;
@@ -143,9 +170,13 @@ public slots:
 
 
     }
+signals :
+    int get_server_config(char *buf);
 
 private:
+    char buf[BUF_MAX_LEN];
     QTcpSocket *skt;
+    CameraManager *p_manager;
 };
 
 class Server : public QObject
@@ -153,6 +184,7 @@ class Server : public QObject
     Q_OBJECT
 public:
     explicit Server(QObject *parent=0 ):QObject(parent){
+        cam_manager=new CameraManager();
         dis=new Discover();
         bool ret=false;
         server=new QTcpServer();
@@ -206,8 +238,12 @@ public slots:
         //                skt, &QObject::deleteLater);
         connect(skt, SIGNAL(disconnected()),
                 skt, SLOT(deleteLater()));
+
         qDebug()<<"client addr incoming "<<skt->peerAddress()<<skt->peerPort();
-        new tcpClient(skt);
+        tcpClient *client=new tcpClient(skt,this->cam_manager);
+        clients.append(client);
+        connect(client,SIGNAL(get_server_config(char *)),cam_manager,SLOT(get_config(char *)));
+
         //    skt->write(block);
         //    skt->disconnectFromHost();
     }
@@ -223,8 +259,10 @@ public slots:
         connect(skt,SIGNAL(readyRead()),this,SLOT(handle_msg));
     }
 private:
+    CameraManager *cam_manager;
     Discover *dis;
     QTcpServer *server;
+    QList <tcpClient *> clients;
 };
 
 #endif // SERVER_H

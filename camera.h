@@ -16,6 +16,7 @@
 
 using namespace cv;
 using namespace std;
+class CameraManager;
 class VideoHandler{
 public:
 
@@ -187,21 +188,22 @@ private:
 
 #include"camera.h"
 class CameraManager:public QObject{
+    Q_OBJECT
 public:
     CameraManager(){
-
-        for(int i=0;i<cfg.data.camera_amount;i++){
-            Camera *c=new Camera(cfg.data.camera[i]);
+        p_cfg=new Config("/root/repo-github/pedestrian/config.json");
+        for(int i=0;i<p_cfg->data.camera_amount;i++){
+            Camera *c=new Camera(p_cfg->data.camera[i]);
             //   Camera c(cfg.data.camera[i]);
             cams.append(c);
         }
     }
     ~CameraManager(){
-        for(int i=0;i<cfg.data.camera_amount;i++){
+        for(int i=0;i<p_cfg->data.camera_amount;i++){
             delete cams[i];
         }
     }
-
+public slots:
     void add_camera()
     {
         //         Camera *c=new Camera(cfg.data.camera[i]);
@@ -214,11 +216,22 @@ public:
     {
 
     }
+    int get_config(char *c)
+    {
+      //c= p_cfg->get_ba().data();
 
+       char *src=p_cfg->get_ba().data();
+       int len=p_cfg->get_ba().length();
+     //   memcpy(c, p_cfg->get_ba().data(),p_cfg->get_ba().length());
+        memcpy(c,src,len);
+
+       return len;
+    }
 
 private:
     QList <Camera *> cams;
-    Config cfg;
+//    Config cfg;
+    Config *p_cfg;
 };
 
 

@@ -84,7 +84,15 @@ public :
         pkg_set_ret(buf+2+2+2,RET_SUCCESS);
         return HEAD_LENGTH;
     }
-
+    static int encode_configuration_reply(char *buf,int len,int ret){
+     //   pkg_set_len(ba);
+     //   memset(buf,0,BUF_MAX_LEN);
+        pkg_set_len(buf,len);
+        pkg_set_version(buf+2,VERSION);
+        pkg_set_op(buf+2+2,GET_CONFIG);
+        pkg_set_ret(buf+2+2+2,ret);
+        return HEAD_LENGTH;
+    }
     static int encode_addcam_request(char *buf){
      //   pkg_set_len(ba);
         memset(buf,0,BUF_MAX_LEN);
