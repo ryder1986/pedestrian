@@ -135,8 +135,7 @@ public:
         decode_from_json(ba);
     }
     QByteArray get_ba(){
-        QByteArray b=encode_to_json();
-        return b;
+        return encode_to_json();
     }
     void load_config_from_file()
     {
