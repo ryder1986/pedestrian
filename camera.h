@@ -103,6 +103,7 @@ public:
                             //rct.y += rect.y;
 
                             rectangle(frame, rct, Scalar(0, 255, 0), 2);
+
                         }
 
                         it++;

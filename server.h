@@ -89,8 +89,24 @@ public:
         qDebug()<<"conntected";
         connect(skt,SIGNAL(readyRead()),this,SLOT(real_reply()));
         connect(skt,SIGNAL(disconnected()),this,SLOT(deleteLater()));
+
+        udp_skt=new QUdpSocket();
+       // QHostAddress a;
+       // udp_skt->bind(a,12349);
+        timer=new QTimer();
+        connect(timer,SIGNAL(timeout()),this,SLOT(send_rst()));
+        timer->start(1000);
+        client_addr=skt->peerAddress();
+
     }
 public slots:
+    void send_rst()
+    {
+   //     udpSocket->writeDatagram(datagram.data(), datagram.size(), QHostAddress::Broadcast, 12347);
+        udp_skt->writeDatagram("1231",client_addr,12341);
+        qDebug()<<"sending";
+    }
+
     void simple_reply()
     {
         QByteArray client_buf=skt->readAll();
@@ -113,37 +129,37 @@ public slots:
     }
 
     void real_reply(){
-       // CameraManager *pa=(CameraManager *)pt;
-      //   skt->waitForReadyRead();
+        // CameraManager *pa=(CameraManager *)pt;
+        //   skt->waitForReadyRead();
         int writes_num=0;
 
         QByteArray client_buf=skt->readAll();
-            int len=client_buf.length();
+        int len=client_buf.length();
         int ret=0;
         int cmd=Protocol::get_operation(client_buf.data());
         memset(buf,0,BUF_MAX_LEN);
         switch (cmd) {
-        case ADD_CAMERA:
+        case Protocol::ADD_CAMERA:
             prt(info,"protocol :add  cam");
             break;
-        case GET_CONFIG:
-           // emit get_server_config(buf);
-           //  CameraManager *pa=(CameraManager *)pt;
+        case Protocol::GET_CONFIG:
+            // emit get_server_config(buf);
+            //  CameraManager *pa=(CameraManager *)pt;
 
 #if 1
-          ret= p_manager->get_config(buf+HEAD_LENGTH);
-      //      prt(info,"protocol :get config");
-            Protocol::encode_configuration_reply(buf,ret,RET_SUCCESS);
-//            buf[7]=3;
-//            buf[6]=2;
-       //     client_buf.setRawData(buf,ret+HEAD_LENGTH);
+            ret= p_manager->get_config(buf+Protocol::HEAD_LENGTH);
+            //      prt(info,"protocol :get config");
+            Protocol::encode_configuration_reply(buf,ret,Protocol::RET_SUCCESS);
+            //            buf[7]=3;
+            //            buf[6]=2;
+            //     client_buf.setRawData(buf,ret+HEAD_LENGTH);
 
 
-            writes_num=skt->write(buf,ret+HEAD_LENGTH);
+            writes_num=skt->write(buf,ret+Protocol::HEAD_LENGTH);
 
 
 #else
-           ret= p_manager->get_config(buf);
+            ret= p_manager->get_config(buf);
             skt->write(buf,ret);
 #endif
 
@@ -179,6 +195,8 @@ private:
     char buf[BUF_MAX_LEN];
     QTcpSocket *skt;
     CameraManager *p_manager;
+    QUdpSocket *udp_skt; QTimer *timer;
+    QHostAddress client_addr;
 };
 
 class Server : public QObject
@@ -199,6 +217,9 @@ public:
         }
         //   connect(server, &QTcpServer::newConnection, this, &Server::reply);
         connect(server, &QTcpServer::newConnection, this, &Server::handle_incomimg_client);
+
+
+
 
     }
     ~Server(){
@@ -264,7 +285,24 @@ private:
     CameraManager *cam_manager;
     Discover *dis;
     QTcpServer *server;
+
     QList <tcpClient *> clients;
+
 };
 
 #endif // SERVER_H
+
+
+
+/////////////////////////////////////
+
+//void Server::initSocket(){
+//    udpSocket = new QUdpSocket(this);
+//    udpSocket->bind(QHostAddress::LocalHost, 7755);
+//    connect(udpSocket, SIGNAL(readyRead()),
+//            this, SLOT(readPendingDatagrams()));}
+//void Server::readPendingDatagrams(){
+//    while (udpSocket->hasPendingDatagrams()) {         QByteArray datagram;
+//        datagram.resize(udpSocket->pendingDatagramSize());         QHostAddress sender;
+//        quint16 senderPort;         udpSocket->readDatagram(datagram.data(), datagram.size(),
+//                                                            &sender, &senderPort);         processTheDatagram(datagram);     }}
