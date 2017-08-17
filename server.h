@@ -95,6 +95,7 @@ public slots:
     {
         QByteArray client_buf=skt->readAll();
 
+
         QByteArray block;
         block.append(client_buf[0]+1);
         //        QString str("1234567890");
@@ -114,9 +115,10 @@ public slots:
     void real_reply(){
        // CameraManager *pa=(CameraManager *)pt;
       //   skt->waitForReadyRead();
+        int writes_num=0;
 
-        int tmp=3;//TODO : should be 0
         QByteArray client_buf=skt->readAll();
+            int len=client_buf.length();
         int ret=0;
         int cmd=Protocol::get_operation(client_buf.data());
         memset(buf,0,BUF_MAX_LEN);
@@ -129,15 +131,15 @@ public slots:
            //  CameraManager *pa=(CameraManager *)pt;
 
 #if 1
-          ret= p_manager->get_config(tmp+buf);
+          ret= p_manager->get_config(buf+HEAD_LENGTH);
       //      prt(info,"protocol :get config");
-       //     Protocol::encode_configuration_reply(tmp+buf,ret,RET_SUCCESS);
+            Protocol::encode_configuration_reply(buf,ret,RET_SUCCESS);
 //            buf[7]=3;
 //            buf[6]=2;
        //     client_buf.setRawData(buf,ret+HEAD_LENGTH);
 
 
-            skt->write(buf,ret+tmp);
+            writes_num=skt->write(buf,ret+HEAD_LENGTH);
 
 
 #else

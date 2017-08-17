@@ -76,6 +76,8 @@ public:
     {
         QJsonDocument json_doc=QJsonDocument::fromJson(json_src);
         QJsonObject root_obj=json_doc.object();
+
+        data.camera.clear();
         data.camera_amount=get_int(root_obj,"camera_total_number");
         QJsonArray cams=get_child_array(root_obj,"camera");
 
