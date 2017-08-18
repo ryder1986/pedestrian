@@ -46,8 +46,15 @@ public :
         DEL_CAMERA
     };
     enum RET{
-       RET_SUCCESS,
-       RET_FAIL
+        RET_SUCCESS,
+        RET_FAIL,
+        RET_REFRESH
+     };
+    enum PORTS{
+        SERVER_PORT=12345,
+        SERVER_DATA_OUTPUT_PORT=12346,
+        CLIENT_REPORTER_PORT=12347,
+        SERVER_REPORTER_PORT=12348
     };
 
     static void pkg_set_len(char *c,int len)

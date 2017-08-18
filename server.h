@@ -9,47 +9,42 @@
 #include <QNetworkInterface>
 #include "common.h"
 #include "camera.h"
-class Discover : public QObject{
+class ServerInfoReporter : public QObject{
     Q_OBJECT
 public:
-    Discover(QObject *p=NULL){
+    ServerInfoReporter(QObject *p=NULL){
         timer=new QTimer();
-        //     connect(timer,SIGNAL(timeout()),this,SLOT(send_buffer()));
-        connect(timer,SIGNAL(timeout()),this,SLOT(check_client()));
-        udpSocket = new QUdpSocket(this);
-        udpSocket->bind(12346,QUdpSocket::ShareAddress);
+        connect(timer,SIGNAL(timeout()),this,SLOT(check_client()));//TODO:maybe replace with readReady signal
+        udp_skt = new QUdpSocket(this);
+        udp_skt->bind(Protocol::SERVER_REPORTER_PORT,QUdpSocket::ShareAddress);
         timer->start(1000);
-
     }
-    ~Discover()
+    ~ServerInfoReporter()
     {
         delete timer;
-        delete udpSocket;
-
+        delete udp_skt;
     }
 
 public  slots:
     void check_client()
     {
         QByteArray client_msg;
-        //    while(udpSocket->hasPendingDatagrams())
-        if(udpSocket->hasPendingDatagrams())
+        char *msg;
+        if(udp_skt->hasPendingDatagrams())
         {
-            client_msg.resize((udpSocket->pendingDatagramSize()));
-            udpSocket->readDatagram(client_msg.data(),client_msg.size());
-            qDebug()<<"get"<<client_msg.data()<<"from client";
-            send_buffer_to_client();
-            //   udpSocket->flush();
+            client_msg.resize((udp_skt->pendingDatagramSize()));
+            udp_skt->readDatagram(client_msg.data(),client_msg.size());
+            prt(info,"msg :%s",msg=client_msg.data());
+            if(!strcmp(msg,"pedestrian"))
+                send_buffer_to_client();
+            //   udp_skt->flush();
         }else{
-            qDebug()<<"get nothing from client ";
+            prt(info,"checking client search..")
         }
     }
 
     void send_buffer_to_client()
     {
-        //  qDebug()<<"time out ";
-        //   datagram = "ip 192.168.1.216 ";
-        qDebug()<<"sending buf";
         QByteArray datagram;
         datagram.clear();
         QList <QNetworkInterface>list_interface=QNetworkInterface::allInterfaces();
@@ -59,52 +54,41 @@ public  slots:
                 foreach (QNetworkAddressEntry e, list_entry) {
                     if(e.ip().protocol()==QAbstractSocket::IPv4Protocol)
                     {
-                        //    qDebug()<<e.ip()<<e.netmask()<<e.broadcast();
                         datagram.append(QString(e.ip().toString())).append(QString(",")).\
                                 append(QString(e.netmask().toString())).append(QString(",")).append(QString(e.broadcast().toString()));
-
-                        //    qDebug()<<datagram;
                     }
 
                 }
             }
         }
-        udpSocket->writeDatagram(datagram.data(), datagram.size(),
-                                 QHostAddress::Broadcast, 12347);
+        udp_skt->writeDatagram(datagram.data(), datagram.size(),
+                               QHostAddress::Broadcast, Protocol::CLIENT_REPORTER_PORT);
     }
-
 private:
     QTimer *timer;
-    QUdpSocket *udpSocket;
+    QUdpSocket *udp_skt;
 };
 
-class tcpClient:public QObject{
+class ClientSession:public QObject{
     Q_OBJECT
 public:
-    tcpClient(QTcpSocket *client_skt,CameraManager *p):skt(client_skt),p_manager(p){
-        //        connect(skt, SIGNAL(error(QAbstractSocket::SocketError)),
-        //                //! [3]
-        //                this, SLOT(displayError(QAbstractSocket::SocketError)));
-        //       welcom_reply();
-        qDebug()<<"conntected";
+    ClientSession(QTcpSocket *client_skt,CameraManager *p):skt(client_skt),p_manager(p){
         connect(skt,SIGNAL(readyRead()),this,SLOT(real_reply()));
         connect(skt,SIGNAL(disconnected()),this,SLOT(deleteLater()));
 
         udp_skt=new QUdpSocket();
-       // QHostAddress a;
-       // udp_skt->bind(a,12349);
+        // QHostAddress a;
+        // udp_skt->bind(a,12349);
         timer=new QTimer();
-        connect(timer,SIGNAL(timeout()),this,SLOT(send_rst()));
+        //     connect(timer,SIGNAL(timeout()),this,SLOT(send_rst_to_client()));
         timer->start(1000);
         client_addr=skt->peerAddress();
 
     }
 public slots:
-    void send_rst()
+    void send_rst_to_client()
     {
-   //     udpSocket->writeDatagram(datagram.data(), datagram.size(), QHostAddress::Broadcast, 12347);
         udp_skt->writeDatagram("1231",client_addr,12341);
-        qDebug()<<"sending";
     }
 
     void simple_reply()
@@ -134,13 +118,15 @@ public slots:
         int writes_num=0;
 
         QByteArray client_buf=skt->readAll();
-        int len=client_buf.length();
+        //       int len=client_buf.length();
         int ret=0;
         int cmd=Protocol::get_operation(client_buf.data());
         memset(buf,0,BUF_MAX_LEN);
         switch (cmd) {
         case Protocol::ADD_CAMERA:
             prt(info,"protocol :add  cam");
+            ret= p_manager->get_config(buf+Protocol::HEAD_LENGTH);
+            p_manager->add_camera();
             break;
         case Protocol::GET_CONFIG:
             // emit get_server_config(buf);
@@ -177,10 +163,10 @@ public slots:
         case QAbstractSocket::RemoteHostClosedError:
             break;
         case QAbstractSocket::HostNotFoundError:
-            qDebug()<<"error1"<<endl;
+            prt(info,"err");
             break;
         case QAbstractSocket::ConnectionRefusedError:
-            qDebug()<<"error2"<<endl;
+            prt(info,"err");
             break;
         default:break;
 
@@ -205,104 +191,48 @@ class Server : public QObject
 public:
     explicit Server(QObject *parent=0 ):QObject(parent){
         cam_manager=new CameraManager();
-        dis=new Discover();
+        reporter=new ServerInfoReporter();
         bool ret=false;
         server=new QTcpServer();
         ret=server->listen(QHostAddress::Any,12345);
         if(ret){
-            qDebug()<<"listen"<<server->serverPort();
+            prt(info,"err");
         }else
         {
-            qDebug()<<"listen fail";
+            prt(info,"err");
         }
-        //   connect(server, &QTcpServer::newConnection, this, &Server::reply);
         connect(server, &QTcpServer::newConnection, this, &Server::handle_incomimg_client);
-
-
-
-
     }
     ~Server(){
-        delete dis;
+        delete reporter;
+        delete cam_manager;
+        delete server;
     }
 
 signals:
 
 public slots:
-    //    void reply()
-    //    {
-    //        qDebug()<<"send one";
-    //        //        QByteArray block;
-    //        ////        QDataStream out(&block, QIODevice::WriteOnly);
-    //        ////        out.setVersion(QDataStream::Qt_4_0);
-    //        ////        out<<(quint16)0;
-    //        ////        out << QString("123456789");
-    //        ////        out.device()->seek(0);
-    //        ////        out<<(quint16)(block.size()-sizeof(quint16));
-
-    //        //        QString str("1234567890");
-    //        //        block.append(str);
-    //        QTcpSocket *skt = server->nextPendingConnection();
-    //        //        connect(skt, &QAbstractSocket::disconnected,
-    //        //                skt, &QObject::deleteLater);
-    //        connect(skt, SIGNAL(disconnected()),
-    //                skt, SLOT(deleteLater()));
-    //        qDebug()<<"peer addr "<<skt->peerAddress()<<skt->peerPort();
-    //        //        skt->write(block);
-    //        //        skt->disconnectFromHost();
-    //    }
     void handle_incomimg_client()
     {
-        QByteArray block;
-        QString str("1234567890");
-        block.append(str);
-        QTcpSocket *skt = server->nextPendingConnection();
-        //        connect(skt, &QAbstractSocket::disconnected,
-        //                skt, &QObject::deleteLater);
-        connect(skt, SIGNAL(disconnected()),
-                skt, SLOT(deleteLater()));
 
-        qDebug()<<"client addr incoming "<<skt->peerAddress()<<skt->peerPort();
-        tcpClient *client=new tcpClient(skt,this->cam_manager);
+        QTcpSocket *skt = server->nextPendingConnection();
+        connect(skt, SIGNAL(disconnected()),skt, SLOT(deleteLater()));
+        QString str(skt->peerAddress().toIPv4Address()>>28);
+        prt(info,"client %s:%d",str.data(),skt->peerPort());
+        ClientSession *client=new ClientSession(skt,this->cam_manager);
         clients.append(client);
         connect(client,SIGNAL(get_server_config(char *)),cam_manager,SLOT(get_config(char *)));
-
-        //    skt->write(block);
-        //    skt->disconnectFromHost();
     }
-    void handle_msg()
-    {
-
-    }
-
     void client_connected()
     {
         QTcpSocket *skt = server->nextPendingConnection();
         connect(skt, SIGNAL(disconnected()), skt, SLOT(deleteLater()));
-        connect(skt,SIGNAL(readyRead()),this,SLOT(handle_msg));
     }
 private:
     CameraManager *cam_manager;
-    Discover *dis;
+    ServerInfoReporter *reporter;
     QTcpServer *server;
-
-    QList <tcpClient *> clients;
-
+    QList <ClientSession *> clients;
 };
 
 #endif // SERVER_H
-
-
-
-/////////////////////////////////////
-
-//void Server::initSocket(){
-//    udpSocket = new QUdpSocket(this);
-//    udpSocket->bind(QHostAddress::LocalHost, 7755);
-//    connect(udpSocket, SIGNAL(readyRead()),
-//            this, SLOT(readPendingDatagrams()));}
-//void Server::readPendingDatagrams(){
-//    while (udpSocket->hasPendingDatagrams()) {         QByteArray datagram;
-//        datagram.resize(udpSocket->pendingDatagramSize());         QHostAddress sender;
-//        quint16 senderPort;         udpSocket->readDatagram(datagram.data(), datagram.size(),
-//                                                            &sender, &senderPort);         processTheDatagram(datagram);     }}

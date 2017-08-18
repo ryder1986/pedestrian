@@ -53,7 +53,7 @@ public:
             //   memcpy(frame.data,frame_ori->imageData,frame_ori->imageSize);
             Mat frame(frame_ori);
 
-            //   imshow("fdsf",frame);
+            imshow("fdsf",frame);
 
 
             //  cout << "opened " << endl;
@@ -140,12 +140,13 @@ public:
 
     VideoSrc()
     {
-        //     p_cap= cvCreateFileCapture("rtsp://192.168.1.81:554");  //读取视频
-        p_cap= cvCreateFileCapture("/root/repo-github/pedestrian/test.mp4");  //读取视频
+      //     p_cap= cvCreateFileCapture("rtsp://192.168.1.81:554");  //读取视频
+          p_cap= cvCreateFileCapture("/root/repo-github/pedestrian/test.mp4");  //读取视频
     }
     ~VideoSrc()
     {
-
+        cvReleaseCapture(&p_cap);
+        delete p_cap;
     }
     void set(VideoHandler &handler)
     {
@@ -161,13 +162,18 @@ class Camera : public QObject
 public:
     explicit Camera(camera_data_t dat,QObject *parent=0) : data(dat),QObject(parent)
     {
-
+        tick=0;
+        p_src=new VideoSrc();
         timer=new QTimer();
         connect(timer,SIGNAL(timeout()),this,SLOT(work()));
-        timer->start(100);
+        timer->start(10);
     }
     ~Camera(){
         delete timer;
+    }
+    void restart(camera_data_t dat)
+    {
+        data=dat;
     }
 
 signals:
@@ -175,16 +181,23 @@ signals:
 public slots:
     void work()
     {
-        //    prt(info,"working");
-        src.set(handler);
+         prt(info,"working");
+        p_src->set(handler);
         handler.work();
+        tick++;
+        if(tick==20){
+            delete p_src;
+            p_src=new VideoSrc();
+            tick=0;
+        }
     }
 
 private:
     camera_data_t data;
     QTimer *timer;
-    VideoSrc src;
+    VideoSrc*p_src;
     VideoHandler handler;
+    int tick;
 };
 
 #include"camera.h"
@@ -208,30 +221,33 @@ public slots:
     void add_camera()
     {
         //         Camera *c=new Camera(cfg.data.camera[i]);
+        Camera *c=new Camera(p_cfg->data.camera[p_cfg->data.camera_amount-1]);
+        cams.append(c);
     }
-    void del_camera()
+    void del_camera(int index)
     {
-
+        delete cams[index-1];
+        cams.removeAt(index-1);
     }
-    void change_camera()
+    void modify_camera(int index)
     {
-
+        cams[index]->restart(p_cfg->data.camera[index-1]);
     }
     int get_config(char *c)
     {
-      //c= p_cfg->get_ba().data();
+        //c= p_cfg->get_ba().data();
 
-       char *src=p_cfg->get_ba().data();
-       int len=p_cfg->get_ba().length();
-     //   memcpy(c, p_cfg->get_ba().data(),p_cfg->get_ba().length());
+        char *src=p_cfg->get_ba().data();
+        int len=p_cfg->get_ba().length();
+        //   memcpy(c, p_cfg->get_ba().data(),p_cfg->get_ba().length());
         memcpy(c,src,len);
 
-       return len;
+        return len;
     }
 
 private:
     QList <Camera *> cams;
-//    Config cfg;
+    //    Config cfg;
     Config *p_cfg;
 };
 

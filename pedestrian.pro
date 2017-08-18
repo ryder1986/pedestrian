@@ -22,3 +22,5 @@ HEADERS += \
 
 INCLUDEPATH+=/usr/include
 LIBS +=   -lopencv_core  -lopencv_highgui  -lopencv_objdetect -lopencv_imgproc -lopencv_ml -lopencv_video
+#QMAKE_CXXFLAGS+=-v
+QMAKE_CXXFLAGS+=-w
