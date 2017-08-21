@@ -39,7 +39,7 @@ public  slots:
                 send_buffer_to_client();
             //   udp_skt->flush();
         }else{
-            prt(info,"checking client search..")
+            prt(info,"searching client on port %d",Protocol::SERVER_REPORTER_PORT)
         }
     }
 
@@ -194,12 +194,13 @@ public:
         reporter=new ServerInfoReporter();
         bool ret=false;
         server=new QTcpServer();
-        ret=server->listen(QHostAddress::Any,12345);
+        ret=server->listen(QHostAddress::Any,Protocol::SERVER_PORT);
         if(ret){
-            prt(info,"err");
+            prt(info,"ok to listen %d",Protocol::SERVER_PORT);
         }else
         {
-            prt(info,"err");
+            prt(info,"err in listening %d",Protocol::SERVER_PORT);
+            exit(1);
         }
         connect(server, &QTcpServer::newConnection, this, &Server::handle_incomimg_client);
     }

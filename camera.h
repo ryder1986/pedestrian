@@ -53,7 +53,7 @@ public:
             //   memcpy(frame.data,frame_ori->imageData,frame_ori->imageSize);
             Mat frame(frame_ori);
 
-            imshow("fdsf",frame);
+     //       imshow("fdsf",frame);
 
 
             //  cout << "opened " << endl;
@@ -181,7 +181,7 @@ signals:
 public slots:
     void work()
     {
-         prt(info,"working");
+        prt(info,"video handler working");
         p_src->set(handler);
         handler.work();
         tick++;
