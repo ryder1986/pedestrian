@@ -121,12 +121,17 @@ public slots:
         //       int len=client_buf.length();
         int ret=0;
         int cmd=Protocol::get_operation(client_buf.data());
+        int pkg_len=Protocol::get_length(client_buf.data());
         memset(buf,0,BUF_MAX_LEN);
+        QByteArray bta;
         switch (cmd) {
         case Protocol::ADD_CAMERA:
             prt(info,"protocol :add  cam");
-            ret= p_manager->get_config(buf+Protocol::HEAD_LENGTH);
-            p_manager->add_camera();
+
+            bta.clear();
+            bta.append((char *)buf+Protocol::HEAD_LENGTH,pkg_len);
+            p_manager->add_camera(bta);
+            //     p_manager->add_camera();
             break;
         case Protocol::GET_CONFIG:
             // emit get_server_config(buf);

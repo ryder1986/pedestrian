@@ -218,9 +218,12 @@ public:
         }
     }
 public slots:
-    void add_camera()
+    void add_camera(QByteArray buf)
     {
         //         Camera *c=new Camera(cfg.data.camera[i]);
+        p_cfg->data.camera_amount++;
+        //camera_data_t ca;
+        p_cfg->set_ba((buf));
         Camera *c=new Camera(p_cfg->data.camera[p_cfg->data.camera_amount-1]);
         cams.append(c);
     }
