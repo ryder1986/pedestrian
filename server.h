@@ -129,7 +129,7 @@ public slots:
             prt(info,"protocol :add  cam");
 
             bta.clear();
-            bta.append((char *)buf+Protocol::HEAD_LENGTH,pkg_len);
+            bta.append((char *)client_buf.data()+Protocol::HEAD_LENGTH,pkg_len);
             p_manager->add_camera(bta);
             //     p_manager->add_camera();
             break;
