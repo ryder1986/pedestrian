@@ -69,6 +69,12 @@ public :
         quint16 *p_len=( quint16 *)dst;
         return *p_len;
     }
+    static int pkg_get_ret(char *c)
+    {
+        char *dst=c;
+        quint16 *p_ret=( quint16 *)dst;
+        return *p_ret;
+    }
     static void pkg_set_version(char *c,int version)
     {
         char *dst=c;
@@ -140,12 +146,23 @@ public :
         pkg_set_ret(buf+2+2+2,RET_SUCCESS);
         return HEAD_LENGTH;
     }
-
+    static int encode_delcam_request(char *buf,int index){
+     //   pkg_set_len(ba);
+        memset(buf,0,BUF_MAX_LEN);
+        pkg_set_len(buf,0);
+        pkg_set_version(buf+2,VERSION);
+        pkg_set_op(buf+2+2,DEL_CAMERA);
+        pkg_set_ret(buf+2+2+2,index);
+        return HEAD_LENGTH;
+    }
     static int get_operation(char *buf){
         return pkg_get_op(buf+2+2);
     }
     static int get_length(char *buf){
         return pkg_get_len(buf);
+    }
+    static int get_index(char *buf){
+        return pkg_get_ret(buf+2+2+2);
     }
 //    static char* encode_configuration_reply(char *buf){
 //     //   pkg_set_len(ba);

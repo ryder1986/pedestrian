@@ -135,17 +135,20 @@ public:
     //     }
     void set_ba(QByteArray ba){
         decode_from_json(ba);
+        save_config_to_file();
     }
     QByteArray get_ba(){
         return encode_to_json();
     }
-    void load_config_from_file()
+
+    int load_config_from_file()
     {
         QFile *f=new QFile(config_filename);
         bool ret = f->open(QIODevice::ReadOnly);
         if(!ret){
             qDebug()<<config_filename;
             delete f;
+            return 0;
         }
         QByteArray json_data;
         json_data=f->readAll();
@@ -153,6 +156,7 @@ public:
         //   json_doc=QJsonDocument::fromJson(json_data);
         //   parse_data();
         f->close();
+        return 1;
     }
     void save_config_to_file()
     {

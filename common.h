@@ -6,6 +6,7 @@
 #include <iostream>
 #include <cstring>
 #include <ctime>
+#include <thread>
 #include "stdio.h"
 #include<stdio.h>
 #define PATH_LEN 100
@@ -156,6 +157,9 @@ inline void add_title(char *label,char *str,int line,char *src_file)
             ||strcmp(label,"debug_sig")==0 )
 #else defined( LOG_LEVEL3)
     if(strcmp(label,"info")==0\
+            ||strcmp(label,"debug--1")==0 \
+            ||strcmp(label,"err")==0 \
+            ||strcmp(label,"info_loop------1")==0 \
             ||strcmp(label,"err")==0 \
             ||strcmp(label,"exit")==0 \
             ||strcmp(label,"net---1")==0 \

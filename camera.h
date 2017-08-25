@@ -28,15 +28,15 @@ public:
     }
 
 
-//    void operator>>(VideoHandler &handler)
-//   {
-//        //  handler.frame_ori= cvQ     return handler;
-//   }
+    //    void operator>>(VideoHandler &handler)
+    //   {
+    //        //  handler.frame_ori= cvQ     return handler;
+    //   }
     ~VideoHandler()
     {
 
     }
-    void work()
+    void work(char *url)
     {
         int min_win_width = 64;	// 48, 64, 96, 128, 160, 192, 224
         int max_win_width = 256;
@@ -44,13 +44,13 @@ public:
         CascadeClassifier cascade;
         vector<Rect> objs;
         //string cascade_name = "../Hog_Adaboost_Pedestrian_Detect\\hogcascade_pedestrians.xml";
-       // string cascade_name = "/root/hogcascade_pedestrians.xml";
+        // string cascade_name = "/root/hogcascade_pedestrians.xml";
         string cascade_name = "/root/repo-github/pedestrian/hogcascade_pedestrians.xml";
 
         if (!cascade.load(cascade_name))
         {
             prt(info,"can't load cascade");
-           // cout << "can't load cascade!" << endl;
+            // cout << "can't load cascade!" << endl;
             //return -1;
         }
 #if 1
@@ -61,8 +61,7 @@ public:
             //   frame.create(frame_ori->height,frame_ori->width,CV_8U);
             //   memcpy(frame.data,frame_ori->imageData,frame_ori->imageSize);
             Mat frame(frame_ori);
-
-     //       imshow("fdsf",frame);
+          //  imshow(url,frame);
 
 
             //  cout << "opened " << endl;
@@ -129,7 +128,7 @@ public:
             else
             {
 
-                cout << "frame err" << endl;
+                prt(info,"opencv handle frame error !");
                 //break;
             }
         }
@@ -152,15 +151,17 @@ public:
 
     VideoSrc()
     {
-      //     p_cap= cvCreateFileCapture("rtsp://192.168.1.81:554");  //读取视频
-          p_cap= cvCreateFileCapture("/root/repo-github/pedestrian/test.mp4");  //读取视频
+        //     p_cap= cvCreateFileCapture("rtsp://192.168.1.81:554");  //读取视频
+        p_cap= cvCreateFileCapture("/root/repo-github/pedestrian/test.mp4");  //读取视频
     }
-     VideoSrc(QString url)
+    VideoSrc(QString path)
     {
-      //     p_cap= cvCreateFileCapture("rtsp://192.168.1.81:554");  //读取视频
-          p_cap= cvCreateFileCapture(url.toStdString().data());  //读取视频
+        //     p_cap= cvCreateFileCapture("rtsp://192.168.1.81:554");  //读取视频
 
-          prt(info,"get %s",url.toStdString().data());
+        strcpy(url,path.toStdString().data());
+        p_cap= cvCreateFileCapture(url);  //读取视频
+
+        //    prt(info,"get %s",url.toStdString().data());
     }
     ~VideoSrc()
     {
@@ -172,25 +173,41 @@ public:
         handler.frame_ori= cvQueryFrame(p_cap);
     }
 
- VideoHandler &operator>>(VideoHandler &handler)
-{
-       handler.frame_ori= cvQueryFrame(p_cap);
-       return handler;
-}
-// void operator +(int t)
-// {
+    VideoHandler &operator>>(VideoHandler &handler)
+    {
 
-// }
+        int err=0;
+        handler.frame_ori= cvQueryFrame(p_cap);
+        if(handler.frame_ori==NULL){
+            prt(info,"get video source fail, source url:%s",url);
+            err=1;
+            std::this_thread::sleep_for(chrono::milliseconds(1000));
+        }else{
+           //    prt(info,"get video source url:%s",url);
+        }
+        if(!err)
+            handler.work(url);
+        return handler;
+    }
+    // void operator +(int t)
+    // {
 
-//    int  operator +(int i)
-//    {
-//       return i+1;
-//    }
+    // }
+
+    //    int  operator +(int i)
+    //    {
+    //       return i+1;
+    //    }
+    char *get_url(){
+        return url;
+    }
 
 private:
     CvCapture *p_cap;
+    char url[PATH_LEN];
 
 };
+//using namespace std;
 class Camera : public QObject
 {
     Q_OBJECT
@@ -198,47 +215,47 @@ public:
     explicit Camera(camera_data_t dat,QObject *parent=0) : data(dat),QObject(parent)
     {
         tick=0;
-        p_src=new VideoSrc(data.ip);
+        p_video_src=new VideoSrc(data.ip);
         timer=new QTimer();
         connect(timer,SIGNAL(timeout()),this,SLOT(work()));
         timer->start(10);
     }
     ~Camera(){
         delete timer;
-        delete p_src;
+        delete p_video_src;
     }
     void restart(camera_data_t dat)
     {
         data=dat;
     }
-    void work()
-    {
-        prt(info,"video handler working");
-      //  p_src->set(handler);
-     //  VideoSrc test=*p_src;
-    //   char tt=1;
-   // VideoSrc vs;
-        *p_src>>handler;
-//        p_src+1;
-       //   p_src+1;
-        handler.work();
-        tick++;
-        if(tick==20){
-            delete p_src;
-            p_src=new VideoSrc();
-            tick=0;
-        }
-    }
+
 
 signals:
 
 public slots:
+    void work()
+    {
 
+        *p_video_src>>video_handler;
+
+        //        p_src->set(handler);
+        //    handler.work();
+        tick++;
+       // char tmp[100];
+//       QString tmp(p_video_src->get_url());
+//        if(tick==20){
+//        //   strcpy(tmp,p_video_src->url);
+//            prt(info,"restart cam %s, per 20 frame",tmp.toStdString().data());
+//            delete p_video_src;
+//            p_video_src=new VideoSrc(tmp);
+//            tick=0;
+//        }
+    }
 private:
     camera_data_t data;
     QTimer *timer;
-    VideoSrc*p_src;
-    VideoHandler handler;
+    VideoSrc*p_video_src;
+    VideoHandler video_handler;
     int tick;
 };
 
@@ -263,7 +280,7 @@ public slots:
     void add_camera(QByteArray buf)
     {
         //         Camera *c=new Camera(cfg.data.camera[i]);
-    //    p_cfg->data.camera_amount++;
+        //    p_cfg->data.camera_amount++;
         //camera_data_t ca;
         p_cfg->set_ba((buf));
         Camera *c=new Camera(p_cfg->data.camera[p_cfg->data.camera_amount-1]);
@@ -271,8 +288,13 @@ public slots:
     }
     void del_camera(int index)
     {
+
+        p_cfg->data.camera.removeAt(index);
+        p_cfg->data.camera_amount--;
+        p_cfg->save_config_to_file();
         delete cams[index-1];
         cams.removeAt(index-1);
+
     }
     void modify_camera(int index)
     {

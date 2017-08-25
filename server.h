@@ -39,7 +39,7 @@ public  slots:
                 send_buffer_to_client();
             //   udp_skt->flush();
         }else{
-            prt(info,"searching client on port %d",Protocol::SERVER_REPORTER_PORT)
+            prt(debug,"searching client on port %d",Protocol::SERVER_REPORTER_PORT)
         }
     }
 
@@ -122,18 +122,22 @@ public slots:
         int ret=0;
         int cmd=Protocol::get_operation(client_buf.data());
         int pkg_len=Protocol::get_length(client_buf.data());
+        int cam_index=Protocol::get_index(client_buf.data());
         memset(buf,0,BUF_MAX_LEN);
         QByteArray bta;
         switch (cmd) {
         case Protocol::ADD_CAMERA:
-            prt(info,"protocol :add  cam");
+            prt(info,"protocol :adding   cam");
 
             bta.clear();
             bta.append((char *)client_buf.data()+Protocol::HEAD_LENGTH,pkg_len);
             p_manager->add_camera(bta);
+            writes_num=skt->write(buf,ret+Protocol::HEAD_LENGTH);
+
             //     p_manager->add_camera();
             break;
         case Protocol::GET_CONFIG:
+             prt(info,"protocol :send config");
             // emit get_server_config(buf);
             //  CameraManager *pa=(CameraManager *)pt;
 
@@ -154,6 +158,12 @@ public slots:
             skt->write(buf,ret);
 #endif
 
+
+            break;
+        case Protocol::DEL_CAMERA:
+             prt(info,"protocol :deling    cam %d ",cam_index);
+            p_manager->del_camera(cam_index);
+            writes_num=skt->write(buf,ret+Protocol::HEAD_LENGTH);
 
             break;
         default:

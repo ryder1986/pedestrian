@@ -1,6 +1,6 @@
 QT += core network
 QT -= gui
-
+CONFIG +=c++11
 TARGET = pedestrian
 CONFIG += console
 CONFIG -= app_bundle

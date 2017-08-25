@@ -1,13 +1,33 @@
 {
     "camera": [
         {
-            "ip": "192.168.1.89",
+            "ip": "1111111",
             "port": 554
         },
         {
-            "ip": "192.168.1.89",
+            "ip": "1111111",
+            "port": 554
+        },
+        {
+            "ip": "/root/repo-github/pedestrian/test.264",
+            "port": 554
+        },
+        {
+            "ip": "/root/repo-github/pedestrian/test.264",
+            "port": 554
+        },
+        {
+            "ip": "444444",
+            "port": 554
+        },
+        {
+            "ip": "/root/repo-github/pedestrian/test.264",
+            "port": 554
+        },
+        {
+            "ip": "5555555",
             "port": 554
         }
     ],
-    "camera_total_number": 2
+    "camera_total_number": 7
 }
