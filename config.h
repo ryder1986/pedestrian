@@ -140,7 +140,9 @@ public:
     QByteArray get_ba(){
         return encode_to_json();
     }
-
+    void save(){
+        save_config_to_file();
+    }
     int load_config_from_file()
     {
         QFile *f=new QFile(config_filename);
