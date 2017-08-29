@@ -3,11 +3,7 @@
         {
             "ip": "1",
             "port": 554
-        },
-        {
-            "ip": "1222",
-            "port": 554
         }
     ],
-    "camera_total_number": 2
+    "camera_total_number": 1
 }

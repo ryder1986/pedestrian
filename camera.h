@@ -61,7 +61,7 @@ public:
             //   frame.create(frame_ori->height,frame_ori->width,CV_8U);
             //   memcpy(frame.data,frame_ori->imageData,frame_ori->imageSize);
             Mat frame(frame_ori);
-          //  imshow(url,frame);
+            //  imshow(url,frame);
 
 
             //  cout << "opened " << endl;
@@ -183,7 +183,7 @@ public:
             err=1;
             std::this_thread::sleep_for(chrono::milliseconds(1000));
         }else{
-           //    prt(info,"get video source url:%s",url);
+            //    prt(info,"get video source url:%s",url);
         }
         if(!err)
             handler.work(url);
@@ -241,15 +241,15 @@ public slots:
         //        p_src->set(handler);
         //    handler.work();
         tick++;
-       // char tmp[100];
-//       QString tmp(p_video_src->get_url());
-//        if(tick==20){
-//        //   strcpy(tmp,p_video_src->url);
-//            prt(info,"restart cam %s, per 20 frame",tmp.toStdString().data());
-//            delete p_video_src;
-//            p_video_src=new VideoSrc(tmp);
-//            tick=0;
-//        }
+        // char tmp[100];
+        //       QString tmp(p_video_src->get_url());
+        //        if(tick==20){
+        //        //   strcpy(tmp,p_video_src->url);
+        //            prt(info,"restart cam %s, per 20 frame",tmp.toStdString().data());
+        //            delete p_video_src;
+        //            p_video_src=new VideoSrc(tmp);
+        //            tick=0;
+        //        }
     }
 private:
     camera_data_t data;
@@ -303,13 +303,13 @@ public slots:
     int get_config(char *c)
     {
         //c= p_cfg->get_ba().data();
-
-        char *src=p_cfg->get_ba().data();
-        int len=p_cfg->get_ba().length();
+        QByteArray b(p_cfg->get_ba());
+//        char *src=(p_cfg->get_ba()).data();
+//        char *tmp=b.data();
+        int len=b.length();
         //   memcpy(c, p_cfg->get_ba().data(),p_cfg->get_ba().length());
-        memcpy(c,src,len);
-
-        return len;
+        memcpy(c,b.data(),len);
+         return len;
     }
 
 private:

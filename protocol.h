@@ -144,7 +144,7 @@ public :
         pkg_set_version(buf+2,VERSION);
         pkg_set_op(buf+2+2,ADD_CAMERA);
         pkg_set_ret(buf+2+2+2,RET_SUCCESS);
-        return HEAD_LENGTH;
+        return HEAD_LENGTH+len;
     }
     static int encode_delcam_request(char *buf,int index){
      //   pkg_set_len(ba);
