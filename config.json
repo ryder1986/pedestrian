@@ -1,29 +1,13 @@
 {
     "camera": [
         {
-            "ip": "2",
+            "ip": "rtsp://192.168.1.89:554/av0_0",
             "port": 554
         },
         {
-            "ip": "4",
-            "port": 554
-        },
-        {
-            "ip": "1",
-            "port": 554
-        },
-        {
-            "ip": "/root/test.mp4",
-            "port": 554
-        },
-        {
-            "ip": "9",
-            "port": 554
-        },
-        {
-            "ip": "",
+            "ip": "rtsp://192.168.1.89:554/av0_1",
             "port": 554
         }
     ],
-    "camera_total_number": 6
+    "camera_total_number": 2
 }

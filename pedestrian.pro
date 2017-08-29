@@ -10,14 +10,18 @@ TEMPLATE = app
 SOURCES += main.cpp \
     config.cpp \
     camera.cpp \
-    server.cpp
+    server.cpp \
+    videosrc.cpp \
+    videohandler.cpp
 
 HEADERS += \
     common.h \
     config.h \
     camera.h \
     server.h \
-    protocol.h
+    protocol.h \
+    videosrc.h \
+    videohandler.h
 
 
 INCLUDEPATH+=/usr/include
