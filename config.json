@@ -1,9 +1,29 @@
 {
     "camera": [
         {
+            "ip": "2",
+            "port": 554
+        },
+        {
+            "ip": "4",
+            "port": 554
+        },
+        {
             "ip": "1",
+            "port": 554
+        },
+        {
+            "ip": "/root/test.mp4",
+            "port": 554
+        },
+        {
+            "ip": "9",
+            "port": 554
+        },
+        {
+            "ip": "",
             "port": 554
         }
     ],
-    "camera_total_number": 1
+    "camera_total_number": 6
 }

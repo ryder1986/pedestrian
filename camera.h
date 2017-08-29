@@ -288,12 +288,14 @@ public slots:
     }
     void del_camera(int index)
     {
+        if(index<=p_cfg->data.camera_amount&&index>0){
 
-        p_cfg->data.camera.removeAt(index);
-        p_cfg->data.camera_amount--;
-        p_cfg->save_config_to_file();
-        delete cams[index-1];
-        cams.removeAt(index-1);
+            p_cfg->data.camera.removeAt(index-1);
+            p_cfg->data.camera_amount--;
+            p_cfg->save_config_to_file();
+            delete cams[index-1];
+            cams.removeAt(index-1);
+        }
 
     }
     void modify_camera(int index)
@@ -304,12 +306,12 @@ public slots:
     {
         //c= p_cfg->get_ba().data();
         QByteArray b(p_cfg->get_ba());
-//        char *src=(p_cfg->get_ba()).data();
-//        char *tmp=b.data();
+        //        char *src=(p_cfg->get_ba()).data();
+        //        char *tmp=b.data();
         int len=b.length();
         //   memcpy(c, p_cfg->get_ba().data(),p_cfg->get_ba().length());
         memcpy(c,b.data(),len);
-         return len;
+        return len;
     }
 
 private:
