@@ -137,31 +137,18 @@ public slots:
             //     p_manager->add_camera();
             break;
         case Protocol::GET_CONFIG:
-             prt(info,"protocol :send config");
-            // emit get_server_config(buf);
-            //  CameraManager *pa=(CameraManager *)pt;
-
+            prt(info,"protocol :send config");
 #if 1
             ret= p_manager->get_config(buf+Protocol::HEAD_LENGTH);
-            //      prt(info,"protocol :get config");
             Protocol::encode_configuration_reply(buf,ret,Protocol::RET_SUCCESS);
-            //            buf[7]=3;
-            //            buf[6]=2;
-            //     client_buf.setRawData(buf,ret+HEAD_LENGTH);
-
-
             writes_num=skt->write(buf,ret+Protocol::HEAD_LENGTH);
-
-
 #else
             ret= p_manager->get_config(buf);
             skt->write(buf,ret);
 #endif
-
-
             break;
         case Protocol::DEL_CAMERA:
-             prt(info,"protocol :deling    cam %d ",cam_index);
+            prt(info,"protocol :deling    cam %d ",cam_index);
             p_manager->del_camera(cam_index);
             writes_num=skt->write(buf,ret+Protocol::HEAD_LENGTH);
 
@@ -211,10 +198,10 @@ public:
         server=new QTcpServer();
         ret=server->listen(QHostAddress::Any,Protocol::SERVER_PORT);
         if(ret){
-            prt(info,"ok to listen %d",Protocol::SERVER_PORT);
+            prt(info,"ok to listen on port %d",Protocol::SERVER_PORT);
         }else
         {
-            prt(info,"err in listening %d",Protocol::SERVER_PORT);
+            prt(info,"err in listen on port %d",Protocol::SERVER_PORT);
             exit(1);
         }
         connect(server, &QTcpServer::newConnection, this, &Server::handle_incomimg_client);
@@ -224,13 +211,10 @@ public:
         delete cam_manager;
         delete server;
     }
-
 signals:
-
 public slots:
     void handle_incomimg_client()
     {
-
         QTcpSocket *skt = server->nextPendingConnection();
         connect(skt, SIGNAL(disconnected()),skt, SLOT(deleteLater()));
         QString str(skt->peerAddress().toIPv4Address()>>28);

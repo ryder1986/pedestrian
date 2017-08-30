@@ -14,7 +14,7 @@ public:
     VideoSrc(QString path)
     {
         //     p_cap= cvCreateFileCapture("rtsp://192.168.1.81:554");  //读取视频
-
+        prt(info,"start video src");
         strcpy(url,path.toStdString().data());
         p_cap= cvCreateFileCapture(url);  //读取视频
 
@@ -25,27 +25,62 @@ public:
         cvReleaseCapture(&p_cap);
         delete p_cap;
     }
-    void set(VideoHandler &handler)
-    {
-        handler.frame_ori= cvQueryFrame(p_cap);
-    }
+//    void set(VideoHandler &handler)
+//    {
+//        handler.frame_ori= cvQueryFrame(p_cap);
+//    }
 
-    VideoHandler &operator>>(VideoHandler &handler)
-    {
+//    VideoHandler &operator>>(VideoHandler &handler)
+//    {
 
+//        int err=0;
+//        handler.frame_ori= cvQueryFrame(p_cap);
+//        if(handler.frame_ori==NULL){
+//            prt(info,"get video source fail, source url:%s",url);
+//            err=1;
+//            std::this_thread::sleep_for(chrono::milliseconds(1000));
+//        }else{
+//            //    prt(info,"get video source url:%s",url);
+//        }
+//        if(!err)
+//            handler.work(url);
+//        return handler;
+//    }
+//    VideoHandler &work(VideoHandler &handler)
+//    {
+
+//        int err=0;
+//        handler.frame_ori= cvQueryFrame(p_cap);
+
+//        if(handler.frame_ori==NULL){
+//            prt(info,"get video source fail, source url:%s",url);
+//            err=1;
+//            std::this_thread::sleep_for(chrono::milliseconds(1000));
+//        }else{
+//          prt(info,"get video source url:  size %d",handler.frame_ori->origin);
+//        }
+//        if(!err){
+
+//            handler.work(url);
+//        }
+//        return handler;
+//    }
+
+    IplImage *fetch_frame()
+    {
+        IplImage *ret_img;
         int err=0;
-        handler.frame_ori= cvQueryFrame(p_cap);
-        if(handler.frame_ori==NULL){
+        ret_img=cvQueryFrame(p_cap);
+        if(ret_img==NULL){
             prt(info,"get video source fail, source url:%s",url);
             err=1;
             std::this_thread::sleep_for(chrono::milliseconds(1000));
         }else{
-            //    prt(info,"get video source url:%s",url);
+            prt(info,"get video source url:  size %d",ret_img->imageSize);
         }
-        if(!err)
-            handler.work(url);
-        return handler;
+        return ret_img;
     }
+
     // void operator +(int t)
     // {
 
@@ -60,6 +95,7 @@ public:
     }
 
 private:
+
     CvCapture *p_cap;
     char url[PATH_LEN];
 

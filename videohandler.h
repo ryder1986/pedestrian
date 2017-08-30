@@ -33,7 +33,12 @@ public:
     {
 
     }
-    void work(char *url)
+    void set_frame( IplImage * frame)
+    {
+        frame_ori=frame;
+    }
+
+    int work(char *url)
     {
         int min_win_width = 64;	// 48, 64, 96, 128, 160, 192, 224
         int max_win_width = 256;
@@ -58,8 +63,8 @@ public:
             //   frame.create(frame_ori->height,frame_ori->width,CV_8U);
             //   memcpy(frame.data,frame_ori->imageData,frame_ori->imageSize);
             Mat frame(frame_ori);
-            //  imshow(url,frame);
-
+        //    imshow(url,frame);
+        //   return 0;
 
             //  cout << "opened " << endl;
             //*p_cap >> frame;
