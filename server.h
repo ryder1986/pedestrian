@@ -229,10 +229,10 @@ public slots:
         connect(skt, SIGNAL(disconnected()), skt, SLOT(deleteLater()));
     }
 private:
-    CameraManager *cam_manager;
-    ServerInfoReporter *reporter;
-    QTcpServer *server;
-    QList <ClientSession *> clients;
+    CameraManager *cam_manager;//manage all cameras
+    ServerInfoReporter *reporter;//repy query for system info
+    QTcpServer *server;//server for reply all clients request ,execute client cmds,like add cam,del cam, reconfigure cam,etc..
+    QList <ClientSession *> clients;//client that connected to server
 };
 
 #endif // SERVER_H

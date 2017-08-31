@@ -40,25 +40,24 @@ public:
         data=dat;
     }
 
-
 signals:
 
 public slots:
     void work()
     {
-      //  p_video_src->work(video_handler);
+        //  p_video_src->work(video_handler);
         IplImage *f=p_video_src->fetch_frame();
         if(tick_work++%1==0){
-        video_handler.set_frame(f);
-       video_handler.work("test url");
+            video_handler.set_frame(f);
+            video_handler.work("test url");
         }
         tick++;
     }
 private:
-    camera_data_t data;
-    QTimer *timer;
-    VideoSrc*p_video_src;
-    VideoHandler video_handler;
+    camera_data_t data;//data that camera need
+    QTimer *timer;//do work per xx micro seconds
+    VideoSrc*p_video_src;//camera frame source
+    VideoHandler video_handler;//camera frame handler
     int tick;
     int tick_work;
 };
@@ -109,8 +108,8 @@ public slots:
     }
 
 private:
-    QList <Camera *> cams;
-    Config *p_cfg;
+    QList <Camera *> cams;//cameras that opened, all cameras is working,or trying to work
+    Config *p_cfg;//all the setting on this server
 };
 
 
